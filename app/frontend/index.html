@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Video Recommendation Engine</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f5f6fa;
+      margin: 0;
+      padding: 0;
+    }
+
+    header {
+      background-color: #2f3640;
+      color: #fff;
+      padding: 1rem 2rem;
+      text-align: center;
+      font-size: 1.5rem;
+      font-weight: bold;
+    }
+
+    main {
+      max-width: 800px;
+      margin: 2rem auto;
+      padding: 0 1rem;
+    }
+
+    .input-section {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 2rem;
+    }
+
+    .input-section input {
+      padding: 0.5rem 1rem;
+      font-size: 1rem;
+      border: 1px solid #ccc;
+      border-radius: 5px 0 0 5px;
+      outline: none;
+      flex: 1;
+    }
+
+    .input-section button {
+      padding: 0.5rem 1rem;
+      font-size: 1rem;
+      border: none;
+      background-color: #273c75;
+      color: white;
+      cursor: pointer;
+      border-radius: 0 5px 5px 0;
+      transition: background-color 0.3s;
+    }
+
+    .input-section button:hover {
+      background-color: #192a56;
+    }
+
+    .card {
+      background-color: white;
+      padding: 1rem;
+      margin-bottom: 1rem;
+      border-radius: 8px;
+      box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+      transition: transform 0.2s;
+    }
+
+    .card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+    }
+
+    .card h3 {
+      margin: 0 0 0.5rem 0;
+      color: #192a56;
+    }
+
+    .card p {
+      margin: 0;
+      color: #718093;
+    }
+
+    .error {
+      text-align: center;
+      color: red;
+      font-weight: bold;
+      margin-top: 1rem;
+    }
+  </style>
+</head>
+<body>
+
+<header>Video Recommendation Engine</header>
+
+<main>
+  <div class="input-section">
+    <input type="text" id="username" placeholder="Enter your username">
+    <button onclick="fetchRecommendations()">Get Recommendations</button>
+  </div>
+
+  <div id="results"></div>
+  <div id="error" class="error"></div>
+</main>
+
+<script>
+async function fetchRecommendations() {
+  const username = document.getElementById("username").value.trim();
+  const resultsDiv = document.getElementById("results");
+  const errorDiv = document.getElementById("error");
+  resultsDiv.innerHTML = "";
+  errorDiv.innerText = "";
+
+  if (!username) {
+    errorDiv.innerText = "Please enter a username!";
+    return;
+  }
+
+  try {
+    const response = await fetch(`http://127.0.0.1:8000/feed?username=${username}`);
+    const data = await response.json();
+
+    if (data.detail) {
+      errorDiv.innerText = data.detail;
+      return;
+    }
+
+    const category = data.recommended_category || "N/A";
+    const videos = data.videos || [];
+
+    resultsDiv.innerHTML = `
+      <div class="card">
+        <h3>User: ${data.username}</h3>
+        <p>Recommended Category: ${category}</p>
+      </div>
+    `;
+
+    videos.forEach((video, index) => {
+      const card = document.createElement("div");
+      card.className = "card";
+      card.innerHTML = `<h3>${index + 1} - ${video}</h3>`;
+      resultsDiv.appendChild(card);
+    });
+
+  } catch (err) {
+    console.error(err);
+    errorDiv.innerText = "Error fetching recommendations. Is your backend running?";
+  }
+}
+</script>
+
+</body>
+</html>
